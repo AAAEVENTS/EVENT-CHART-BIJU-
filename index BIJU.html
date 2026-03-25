@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="AAA Events"/>
+<meta name="theme-color" content="#1F3864"/>
+<link rel="manifest" href="manifest.json"/>
+<title>Event Organization Chart</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:Arial,sans-serif;background:#f0f2f5;padding:12px 8px 50px}
+
+/* SUMMARY */
+.summary{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:14px}
+.sc{background:#fff;border:1px solid #ddd;border-radius:10px;padding:10px 14px;text-align:center;flex:1;min-width:55px;max-width:85px;box-shadow:0 1px 4px #0001}
+.sc .sv{font-size:22px;font-weight:700;color:#1F3864}
+.sc .sl{font-size:9px;color:#888;margin-top:2px;line-height:1.3}
+
+/* TIER LABEL */
+.tier-lbl{text-align:center;font-size:9px;font-weight:700;color:#bbb;letter-spacing:.09em;text-transform:uppercase;margin-bottom:5px;margin-top:4px}
+
+/* APEX */
+.apex{display:flex;flex-direction:column;align-items:center}
+.apex-box{background:#1F3864;color:#fff;border-radius:14px;padding:14px 20px;text-align:center;width:100%;max-width:500px;box-shadow:0 3px 14px #1F386450}
+.apex-box .t1{font-size:26px;font-weight:700;letter-spacing:.1em}
+.apex-box .t1s{font-size:11px;opacity:.85;margin-top:5px;line-height:1.6}
+
+/* ORG CONNECTORS */
+.conn-v{width:2px;height:14px;background:#888;margin:0 auto}
+.conn-h{height:2px;background:#888;width:80%;max-width:440px;margin:0 auto}
+
+/* 3 LEAD BOXES IN ONE ROW — compact, no expand here */
+.leads-top{display:flex;flex-direction:row;gap:8px;width:100%;max-width:500px;margin:0 auto;align-items:flex-start}
+.lead-top-col{display:flex;flex-direction:column;align-items:center;flex:1;min-width:0}
+.lead-vline{width:2px;height:14px;background:#888;margin:0 auto}
+
+/* LEAD BOX — compact top row */
+.lead-box{width:100%;border-radius:10px;padding:9px 8px;cursor:pointer;background:#FAECE7;border:2px solid #D85A30;box-shadow:0 2px 8px #D85A3025}
+.lead-box:active{opacity:.82}
+.lead-box.active{background:#D85A30;border-color:#B03000}
+.lead-top-row{display:flex;justify-content:space-between;align-items:center}
+.lead-name{font-size:12px;font-weight:700;color:#6B2010;line-height:1.3}
+.lead-box.active .lead-name{color:#fff}
+.lead-sub{font-size:8.5px;color:#993C1D;margin-top:2px}
+.lead-box.active .lead-sub{color:#FFD0B0}
+.lead-ch{font-size:13px;color:#D85A30;font-weight:700;flex-shrink:0;margin-left:4px}
+.lead-box.active .lead-ch{color:#fff}
+
+/* FULL BRANCH — expands below the 3-col row, full width */
+.branch-wrap{width:100%;max-width:500px;margin:0 auto}
+.branch-sec{max-height:0;overflow:hidden;transition:max-height .45s ease;width:100%}
+.branch-sec.open{max-height:100000px}
+.branch-inner{padding-top:8px}
+
+/* BRANCH HEADER */
+.branch-hdr{background:#D85A30;color:#fff;border-radius:10px;padding:10px 14px;margin-bottom:8px;font-size:13px;font-weight:700}
+.branch-hdr span{font-size:10px;opacity:.85;font-weight:400;display:block;margin-top:2px}
+
+/* KM LIST — full width vertical */
+.km-list{display:flex;flex-direction:column;gap:8px}
+
+/* KM ITEM */
+.km-item{border-radius:10px;padding:10px 12px;background:#E1F5EE;border:1.5px solid #1D9E75;cursor:pointer}
+.km-item:active{opacity:.82}
+.km-top-row{display:flex;justify-content:space-between;align-items:flex-start}
+.km-badge{display:inline-block;background:#1D9E75;color:#fff;border-radius:12px;padding:2px 7px;font-size:10px;font-weight:700;margin-right:5px}
+.km-name{font-size:13px;font-weight:700;color:#064D31;line-height:1.3}
+.km-sub{font-size:10px;color:#0F6E56;margin-top:3px}
+.km-pill{display:inline-flex;align-items:center;gap:4px;background:#FAEEDA;border:1.5px solid #E09020;border-radius:14px;padding:3px 10px;font-size:10px;color:#633806;margin-top:6px;font-weight:600}
+.km-pill.last{background:#FFF0CC;border-color:#FFA500;color:#7A4500;font-weight:700}
+.km-ch{font-size:14px;color:#1D9E75;font-weight:700;flex-shrink:0;margin-top:2px}
+
+/* DS TABLE */
+.ds-sec{max-height:0;overflow:hidden;transition:max-height .38s ease;width:100%}
+.ds-sec.open{max-height:8000px}
+.ds-wrap{border:2px solid #EF9F27;border-radius:10px;margin-top:8px;overflow:hidden;width:100%}
+.ds-tbl{width:100%;border-collapse:collapse;table-layout:fixed}
+.ds-tbl th{background:#E8952A;color:#fff;font-size:11px;font-weight:700;padding:7px 8px;text-align:left}
+.ds-tbl th.ds-td-no{width:30px;text-align:center}
+.ds-tbl th.ds-td-ph{text-align:right;width:110px}
+.ds-tbl td{font-size:12px;padding:7px 8px;vertical-align:middle;border-bottom:1px solid #FAC77440}
+.ds-tbl tr:last-child td{border-bottom:none}
+.ds-tbl tr:nth-child(even) td{background:#FFF8E7}
+.ds-tbl tr:nth-child(odd) td{background:#FFFDF5}
+.ds-td-no{width:30px;font-weight:700;color:#A06010;text-align:center}
+.ds-td-nm{color:#1A1000;font-weight:500;overflow-wrap:break-word;word-break:break-word;line-height:1.4}
+.ds-td-ph{width:110px;font-weight:700;color:#1A3A6A;text-align:right;white-space:nowrap}
+
+/* FRIENDS & FAMILY */
+.ff-sec{max-height:0;overflow:hidden;transition:max-height .3s ease;width:100%}
+.ff-sec.open{max-height:1000px}
+.ff-tbl{width:100%;border-collapse:collapse;table-layout:fixed;margin-top:4px;border-radius:8px;overflow:hidden;border:1.5px solid #B0C4DE}
+.ff-tbl th{background:#1F3864;color:#fff;font-size:10px;font-weight:700;padding:6px 8px;text-align:left}
+.ff-tbl th.ff-no{width:30px;text-align:center}
+.ff-tbl th.ff-ph{width:110px;text-align:right}
+.ff-tbl td{font-size:11px;padding:6px 8px;vertical-align:middle;border-bottom:1px solid #DEE8F040;color:#1A1000}
+.ff-tbl tr:last-child td{border-bottom:none}
+.ff-tbl tr:nth-child(even) td{background:#EEF3FA}
+.ff-tbl tr:nth-child(odd) td{background:#F5F8FF}
+.ff-td-no{width:30px;font-weight:700;color:#1F3864;text-align:center}
+.ff-td-nm{color:#1A2A4A;font-weight:500;font-style:italic}
+.ff-td-ph{width:110px;font-weight:700;color:#555;text-align:right;white-space:nowrap}
+.ff-btn{display:inline-flex;align-items:center;gap:3px;background:#E8EEF8;border:1px solid #B0C4DE;border-radius:10px;padding:2px 8px;font-size:9px;color:#1F3864;margin-top:4px;cursor:pointer;font-weight:600}
+
+/* LEGEND */
+.legend{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px;font-size:10px;color:#555}
+.leg{display:flex;align-items:center;gap:5px}
+.leg-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+.hint{text-align:center;font-size:10px;color:#bbb;margin-top:8px;line-height:1.8;padding:0 8px}
+</style>
+</head>
+<body>
+
+<div class="summary">
+  <div class="sc"><div class="sv">1</div><div class="sl">Lead Member</div></div>
+  <div class="sc"><div class="sv">15</div><div class="sl">Key Members</div></div>
+  <div class="sc"><div class="sv">200</div><div class="sl">Dashavataram</div></div>
+  <div class="sc"><div class="sv">218</div><div class="sl">Total</div></div>
+</div>
+
+<div class="tier-lbl">Tier 1 — Event</div>
+<div class="apex">
+  <div class="apex-box">
+    <div class="t1">EVENT</div>
+    <div class="t1s">3 Lead Members &nbsp;·&nbsp; 15 Key Members &nbsp;·&nbsp; 200 Dashavataram &nbsp;·&nbsp; 218 Total</div>
+  </div>
+</div>
+<div class="conn-v"></div>
+<div class="conn-h"></div>
+
+<div class="tier-lbl" style="margin-top:0">Tier 2 — Lead Members</div>
+
+<!-- 3 LEAD BOXES IN ONE ROW -->
+<div class="leads-top" id="leads-top"></div>
+
+<!-- FULL BRANCH EXPANDS BELOW — one at a time -->
+<div class="branch-wrap">
+  <div class="branch-sec" id="branch-0"></div>
+  
+  
+</div>
+
+<div class="legend">
+  <div class="leg"><div class="leg-dot" style="background:#1F3864"></div>Event</div>
+  <div class="leg"><div class="leg-dot" style="background:#FAECE7;border:2px solid #D85A30"></div>Lead (3)</div>
+  <div class="leg"><div class="leg-dot" style="background:#E1F5EE;border:1.5px solid #1D9E75"></div>Key Member (15)</div>
+  <div class="leg"><div class="leg-dot" style="background:#FAEEDA;border:1px solid #E09020"></div>Dashavataram (200)</div>
+</div>
+<div class="hint">Tap Lead to expand full branch &nbsp;·&nbsp; Tap Key Member to see Dashavataram<br>Key Members #1–#14 → 13 each &nbsp;·&nbsp; Key Member #15 → 18</div>
+
+<script>
+const D=[
+
+ {n:"NAUFAL.T.K",           p:"9629 0855"},
+ {n:"SHABANA NOUFAL",        p:"97213846"},
+ {n:"SURESH KUMAR.K.P(DISH)",p:"9942 9214"},
+ {n:"MOHANAN NEDOYOTH",      p:"7955 0404"},
+ {n:"PILAKKAL PREMACHANDRAN",p:"9553 2657"},
+ {n:"SREEJITH KUMAR(BABU)",  p:"9326 7068"},
+ {n:"KUMARAN.K.C",           p:"79899970"},
+ {n:"C.K.SUNIL KUMAR",       p:"9758 0948"},
+ {n:"PRAJITHA .P.P",         p:"9758 0948"},
+ {n:"VASUDEVAN NAIR.K.K",    p:"9887 8990"},
+ {n:"GANGADHARAN.P",         p:"9215 4712"},
+ {n:"MANOJA.K.V",            p:"9215 4712"},
+ {n:"DR.ROY.P.VEETIL",       p:"9974 0512"},
+ {n:"SHAJI PK",              p:"9729 2357"},
+ {n:"MRS.JISHA SHAJI",       p:"9729 2357"},
+ {n:"SATHEESAN M",           p:"91 8590792422"},
+ {n:"RAJAGOPALAN PV",        p:"9164 2404"},
+ {n:"SHYJU.P.P",             p:"9693 1716"},
+ {n:"UBAID.A",               p:"9258 9252"},
+ {n:"SAJI KALIYATHAN",       p:"9107 8045"},
+ {n:"DEVEN KUNJURAMAN",      p:"9724 7952"},
+ {n:"SANTHOSH KALYATHAN",    p:"9503 0859"},
+ {n:"RAJITH KUMAR",          p:"96414624"},
+ {n:"ABHIJNA LAKSHMANAN",    p:"94089424"},
+ {n:"NIJESH PANNIYOTT",      p:"7984 8283"},
+ {n:"VINEESH K",             p:"9451 3346"},
+ {n:"PRATYUSHA VINESH",      p:"91 9744754747"},
+ {n:"LAL. T.K",              p:"9843 5806"},
+ {n:"PRASAD AK",             p:"9455 2551"},
+ {n:"MINI PRASAD",           p:"9455 2551"},
+ {n:"PURUSHU P",             p:"9599 4806"},
+ {n:"PRANAV KK",             p:"9409 6211"},
+ {n:"SURESH KUMAR",          p:"9724 8710"},
+ {n:"KRISHNAN VK",           p:"9503 5447"},
+ {n:"CHERIAN VARGHESE",      p:"9917 4865"},
+ {n:"VIGNESH A",             p:"9069 7450"},
+ {n:"VIPIN V",               p:"91 562557783"},
+ {n:"PRAVI KUMAR ALATHEL",   p:"9917 3893"},
+ {n:"JOHN PANICKER C",       p:"9591 1720"},
+ {n:"SHIJU KIZHAKKAYIL",     p:"7965 6970"},
+ {n:"SANDEEP SOMAN",         p:"91173193"},
+ {n:"RASHEED M.S",           p:"92140438"},
+ {n:"NOUFEL.C.H",            p:"90756993"},
+ {n:"BIJESH KUNHIPPOYIL",    p:"78025530"},
+ {n:"MANOJKUMAR.K",          p:"91 9061790166"},
+ {n:"SAJITH .M",             p:"79187083"},
+ {n:"SREEJESH CK",           p:"9423 8002"},
+ {n:"SHIJINA SREEJESH",      p:"9423 8002"},
+ {n:"SAJEEV DAMODARAN",      p:"78860303"},
+ {n:"NAVANEETH PTK",         p:"919645690810"},
+ {n:"EBY ISSAC",             p:"91 8137078859"},
+ {n:"ABDUL KALAM",           p:"9158 8252"},
+ {n:"ANOOP R",               p:"9748 3268"},
+ {n:"PRASAD K R",            p:"78032210"},
+ {n:"RANJITH K REJI",        p:"78836484"},
+ {n:"JAYSON",                p:"76452899"},
+ {n:"NIGIL A N",             p:"96301389"},
+ {n:"SANDEEP KUMAR",         p:"99866236"},
+ {n:"ASHA SANDEEP KUMAR",    p:"79657090"},
+ {n:"MANI KRISHNAN",         p:"9931 2522"},
+ {n:"SUJATHA MANI",          p:"9667 4507"},
+ {n:"AJESH MK",              p:"9614 1227"},
+ {n:"PK KUNJI RAMAN",        p:"9653 3978"},
+ {n:"KUZHICHALIL RAMESAN",   p:"9955 6213"},
+ {n:"REETHA RAMESAN",        p:"9031 6811"},
+ {n:"VASUDEVAN PITTAN",      p:"9429 5302"},
+ {n:"SHAMI.P.VASUDEVAN",     p:"9271 4330"},
+ {n:"VISHNU PITTAN",         p:"97458240"},
+ {n:"SUNIL.M",               p:"99063881"},
+ {n:"PRAJEESH VALIYAYI",     p:"79385008"},
+ {n:"BIJOY BABY",            p:"9530 5576"},
+ {n:"HARI KRISHNAN",         p:"99618063"},
+ {n:"PRIYA HARI KRISHNAN",   p:"79779527"},
+ {n:"SHIHABUDHEEN",          p:"9606 7183"},
+ {n:"MURALIKRISHNAN",        p:"9579 1460"},
+ {n:"SHYMA MURALI KRISHNAN", p:"9579 1460"},
+ {n:"SHAHUN ABID",           p:"9902 7880"},
+ {n:"RISHAD ABID",           p:"9828 6614"},
+ {n:"BIJO JOSEPH",           p:"9226 6319"},
+ {n:"ROLFY BIJO",            p:"9393 1375"},
+ {n:"BIJU KP",               p:"9548 4124"},
+ {n:"TINDU BIJU",            p:"9267 4356"},
+ {n:"HARIKUMAR G",           p:"9419 3034"},
+ {n:"JISHA HARIKUMAR",       p:"91156207"},
+ {n:"YASAR ARAFATH",         p:"78823923"},
+ {n:"VINOD SAHADEVAN",       p:"91796562"},
+ {n:"RENJUMON KP",           p:"9516 7807"},
+ {n:"RAJITHA RENJUMON",      p:"96443397"},
+ {n:"RAJESH GOPALAKRISHNA PILLAI",p:"9760 4646"},
+ {n:"SUSHAM SHAH",           p:"9436 9437"},
+ {n:"MRS.HAZITHA SUSHAM",    p:"94369437"},
+ {n:"MUHAMMED ASHRAF",       p:"9649 5975"},
+ {n:"ABHILASH V.T",          p:"9232 1188"},
+ {n:"REMYA ABHILASH",        p:"9232 1188"},
+ {n:"ANIL KUMAR",            p:"9251 6934"},
+ {n:"SANDHYA ANIL KUMAR",    p:"99637941"},
+ {n:"MOHAN DAS KP",          p:"99577936"},
+ {n:"JITHESH MOHADAS",       p:"93718346"},
+ {n:"RAMYA K MANI",          p:"91343391"},
+ {n:"ROOPESH .P",            p:"95037248"},
+ {n:"JISHAR",                p:"97809240"},
+ {n:"SURESH KUMAR.P",        p:"95819518"},
+ {n:"DIVYA SURESH KUMAR",    p:"95819518"},
+ {n:"BAIJU KOCHUOONNUNNY",   p:"98421979"},
+ {n:"SUMA BAIJU",            p:"98421979"},
+ {n:"BIJU B",                p:"90259968"},
+ {n:"RAJESH MOOCHIKKAL",     p:"97212924"},
+ {n:"MANJU RAJESH",          p:"97212924"},
+ {n:"VEADERY VELAYUDAN",     p:"95490737"},
+ {n:"VIPIN GEORGE",          p:"90825844"},
+ {n:"RAJESH PK",             p:"92900849"},
+ {n:"SIRAJ - OPTICALS",      p:"98759865"},
+ {n:"SUBASH VIJAYAN",        p:"94992499"},
+ {n:"LINCY VIJAYAN",         p:"79340275"},
+ {n:"RATHEESH ASHWANTH",     p:"97861588"},
+ {n:"ASWATHI RATHEESH",      p:"77480148"},
+ {n:"PRAKASH CHANDRAN",      p:"94871611"},
+ {n:"DHIUPIN KESHAVA PILLAI",p:"99061730"},
+ {n:"REMYA DHUIPIN",         p:"90659805"},
+ {n:"JIMMY SAMUEL",          p:"9606 3424"},
+ {n:"CHANDRAN ETTAMMAL",     p:"9959 8186"},
+ {n:"VINOD VAZHAYIL",        p:"9252 5238"},
+ {n:"SAJEESH G SANKAR",      p:"9238 6663"},
+ {n:"SOWMYA P NAIR",         p:"9452 2039"},
+ {n:"SANTHOASH KUMAR G",     p:"9526 6128"},
+ {n:"SHAIN .S (TVM)",        p:"9477 1170"},
+ {n:"JAYAPRAKASH",           p:"9541 9681"},
+ {n:"SANTHOSH KUMAR.R",      p:"9738 5465"},
+ {n:"RIYAS MUHAMMED",        p:"91 7034494712"},
+ {n:"GANASAN. P",            p:"9261 1095"},
+ {n:"RIJU VAILOPPILLY",      p:"9391 7754"},
+ {n:"ALBIN LUKKOSE",         p:"9493 4676"},
+ {n:"RESHMA ALBIN",          p:"9493 4676"},
+ {n:"MUJEEB ARAKKODAN",      p:"9131 9694"},
+ {n:"SHANAVAS",              p:"7151 5676"},
+ {n:"VIMAL VP (Kumarettan)", p:"99003154"},
+ {n:"PUSHPAKA KUMAR",        p:"7911 3385"},
+ {n:"DINESH BABU",           p:"9967 9967"},
+ {n:"BIJU RAVINDRAN",        p:"98084104"},
+ {n:"UMMER-E",               p:"94469211"},
+ {n:"ASHOKKUMAR",            p:"95063789"},
+ {n:"RAJANEESH PK",          p:"97273269"},
+ {n:"MAJESH. K",             p:"94380723"},
+ {n:"RIYAS .VP",             p:"99027190"},
+ {n:"UBAIS NAZEER",          p:"93032388"},
+ {n:"SHAJEER",               p:"99890454"},
+ {n:"SUDEEP K.SUSHEELAN",    p:"93878375"},
+ {n:"SAHIL SALIM",           p:"7907209641"},
+ {n:"PRAVEEN AYYOTH",        p:"97497809"},
+ {n:"MADHUSOODHANAN",        p:"9229037"},
+ {n:"MUHAMAD NISHSN",        p:"77081049"},
+ {n:"LIJU AUGUSTINE AL MAHA",p:"99255842"},
+ {n:"NANDU.S",               p:"79533959"},
+ {n:"SURESH KUMAR SIVARAM",  p:"92156998"},
+ {n:"DIVYA SURESH",          p:"92156998"},
+ {n:"JASIM .KK",             p:"93435873"},
+ {n:"SHIYAS TS",             p:"79526047"},
+ {n:"JOSEPH ABRAHAM",        p:"96960172"},
+ {n:"STEPHY JOSEPH",         p:"79150727"},
+ {n:"SUBINBALAKRISHNAN",     p:"92562349"},
+ {n:"NIDHA SUBIN",           p:"93129978"},
+ {n:"SIMSON",                p:"97152717"},
+ {n:"RJESHKUMAR VR",         p:"97062423"},
+ {n:"RIYAZ",                 p:"95828277"},
+ {n:"SHAHAS HASHIM",         p:"78773830"},
+ {n:"SAJEEV SIVADASAN",      p:"78393497"},
+ {n:"JOBY KULATHUMKAL",      p:"92153818"},
+ {n:"ANILA JOBY",            p:"92153818"},
+ {n:"CHANDRAN MULLOKARAN",   p:"95896103"},
+ {n:"VIJEESH,PULIYUMKOTT",   p:"96627581"},
+ {n:"SAJIMON KR",            p:"77310565"},
+ {n:"RAHIM KK",              p:"97867767"},
+ {n:"SAYOOJ T",              p:"94366537"},
+ {n:"PAULISE BIJU",          p:"92682471"},
+ {n:"MANOJ NP, ISS",         p:"9962974622"},
+ {n:"SHINE K MATHEW",        p:"97124271"},
+ {n:"VINU ALAKASSERY",       p:"78028778"},
+ {n:"SURENDRAN VV",          p:""},
+ {n:"SHINE JOY",             p:"97062423"},
+ {n:"ARAVIND RVINDRAN",      p:"91974639"},
+ {n:"THOMAS MATHEW",         p:"97110909"},
+ {n:"SAJAN DAVIS",           p:"79329535"},
+ {n:"LINDA SAJAN",           p:"91897147"},
+ {n:"SHYJU SAHADEVAN",       p:"78282926"},
+ {n:"RESHMA SHEELA",         p:"79744580"},
+ {n:"LATHA SAHADEVAN",       p:"78282926"},
+ {n:"SINILL LAL",            p:"77598034"},
+ {n:"YAMUNA LAL",            p:"91823513"},
+ {n:"TOBIN THOMAS",          p:"94690077"},
+ {n:"MUHAMMED SAMEER",       p:"97094007"},
+ {n:"RISHANA SAMEER",        p:"97094007"},
+ {n:"DEVA DASAN",            p:"92526255"},
+ {n:"RAHUL MADHAV",          p:"97995614"},
+ {n:"SREEDEVI RAHUL",        p:"97995613"},
+ {n:"RAGI RAGESH",           p:"92802108"},
+ {n:"ANISH P RAJAN",         p:"94726620"},
+ {n:"ATHIRA ANISH",          p:"95253607"},
+ {n:"VALSALA SURENDRAN",     p:"95253607"},
+ {n:"BIBIN JOSE",            p:"98778106"},
+ {n:"SAM DAVIS",             p:"92719448"},
+
+];
+const KMS=[
+
+ {no:1, name:"Hazitha Susham",    lead:"Biju Kakkapoyil", c:13},
+ {no:2, name:"Jimmy Samuel",      lead:"Biju Kakkapoyil", c:13},
+ {no:3, name:"Jithesh Mohandas",  lead:"Biju Kakkapoyil", c:13},
+ {no:4, name:"Krishna Prasad",    lead:"Biju Kakkapoyil", c:13},
+ {no:5, name:"Krishnan V",        lead:"Biju Kakkapoyil", c:13},
+ {no:6, name:"Kunji Raman",       lead:"Sreejesh CK",     c:13},
+ {no:7, name:"Lincy Subash",      lead:"Sreejesh CK",     c:13},
+ {no:8, name:"Manoj NP",          lead:"Sreejesh CK",     c:13},
+ {no:9, name:"Rahul Madhav",      lead:"Sreejesh CK",     c:13},
+ {no:10,name:"Rajesh Moochikkal", lead:"Sreejesh CK",     c:13},
+ {no:11,name:"Renjumon KP",       lead:"Susham Sha",      c:13},
+ {no:12,name:"Saji K",            lead:"Susham Sha",      c:13},
+ {no:13,name:"Shyju PP",          lead:"Susham Sha",      c:13},
+ {no:14,name:"Subash Vijayan",    lead:"Susham Sha",      c:13},
+ {no:15,name:"Suresh Kumar",      lead:"Susham Sha",      c:18},
+
+];
+let cur=0;KMS.forEach(k=>{k.s=cur;cur+=k.c;});
+
+const LEADS=[
+ {name:"Biju Kakkapoyil",keys:KMS.filter(k=>k.lead==="Biju Kakkapoyil")},
+];
+
+function buildBranch(lead, branchEl) {
+  branchEl.innerHTML='';
+  const inner=document.createElement('div');inner.className='branch-inner';
+
+
+
+  const kml=document.createElement('div');kml.className='km-list';
+
+  lead.keys.forEach(km=>{
+    const slice=D.slice(km.s,km.s+km.c);
+    const isLast=(km.no===15);
+    const item=document.createElement('div');item.className='km-item';
+    item.innerHTML=`<div class="km-top-row">
+      <div>
+        <div class="km-name"><span class="km-badge">#${km.no}</span>${km.name}</div>
+        <div class="km-sub">Key Member · S.No ${km.s+1}–${km.s+km.c} · Group 1–${km.c}</div>
+        <span class="km-pill${isLast?' last':''}">${km.c} Dashavataram${isLast?' ★':''} &#9660;</span>
+      </div>
+      <div class="km-ch">&#9660;</div>
+    </div>`;
+
+    const dsec=document.createElement('div');dsec.className='ds-sec';
+    const dwrap=document.createElement('div');dwrap.className='ds-wrap';
+
+    const tbl=document.createElement('table');tbl.className='ds-tbl';
+    const thead=document.createElement('thead');
+    thead.innerHTML='<tr><th class="ds-td-no">No</th><th>Dashavataram Member</th><th class="ds-td-ph">WhatsApp No.</th></tr>';
+    tbl.appendChild(thead);
+    const tbody=document.createElement('tbody');
+
+    slice.forEach((d,i)=>{
+      const tr=document.createElement('tr');tr.style.cursor='pointer';
+      tr.innerHTML=`<td class="ds-td-no">${i+1}</td>
+        <td class="ds-td-nm">${d.n}<br><span class="ff-btn">10 Friends &amp; Family &#9660;</span></td>
+        <td class="ds-td-ph">${d.p}</td>`;
+      tbody.appendChild(tr);
+
+      const ffTr=document.createElement('tr');
+      ffTr.innerHTML=`<td colspan="3" style="padding:0 6px 6px;background:#F0F4FF">
+        <div class="ff-sec">
+          <table class="ff-tbl">
+            <thead><tr>
+              <th class="ff-no">No</th>
+              <th>Friends &amp; Family Member</th>
+              <th class="ff-ph">WhatsApp No.</th>
+            </tr></thead>
+            <tbody>${Array.from({length:10},(_,j)=>`<tr>
+              <td class="ff-td-no">${j+1}</td>
+              <td class="ff-td-nm">Friend &amp; Family ${j+1}</td>
+              <td class="ff-td-ph">—</td>
+            </tr>`).join('')}</tbody>
+          </table>
+        </div></td>`;
+      tbody.appendChild(ffTr);
+
+      tr.addEventListener('click',()=>{
+        const ffSec=ffTr.querySelector('.ff-sec');
+        const btn=tr.querySelector('.ff-btn');
+        const open=ffSec.classList.toggle('open');
+        btn.innerHTML=`10 Friends &amp; Family ${open?'&#9650;':'&#9660;'}`;
+      });
+    });
+
+    tbl.appendChild(tbody);
+    dwrap.appendChild(tbl);
+    dsec.appendChild(dwrap);
+    item.appendChild(dsec);
+
+    item.querySelector('.km-top-row').addEventListener('click',e=>{
+      if(e.target.closest('tr')) return;
+      const open=dsec.classList.toggle('open');
+      item.querySelector('.km-pill').innerHTML=`${km.c} Dashavataram${isLast?' ★':''} ${open?'&#9650;':'&#9660;'}`;
+      item.querySelector('.km-ch').innerHTML=open?'&#9650;':'&#9660;';
+    });
+    kml.appendChild(item);
+  });
+
+  inner.appendChild(kml);
+  branchEl.appendChild(inner);
+}
+
+// Build 3 lead boxes in top row
+const leadsTop=document.getElementById('leads-top');
+let activeBranch=-1;
+
+LEADS.forEach((lead,i)=>{
+  const tot=lead.keys.reduce((s,k)=>s+k.c,0);
+  const col=document.createElement('div');col.className='lead-top-col';
+  const vl=document.createElement('div');vl.className='lead-vline';
+  const box=document.createElement('div');box.className='lead-box';
+  box.innerHTML=`<div class="lead-top-row">
+    <div>
+      <div class="lead-name">${lead.name}</div>
+      <div class="lead-sub">Lead · 5 Key · ${tot} Dashavataram</div>
+    </div>
+    <div class="lead-ch">&#9660;</div>
+  </div>`;
+
+  box.addEventListener('click',()=>{
+    const branchEl=document.getElementById('branch-'+i);
+    // Close all branches
+    document.querySelectorAll('.branch-sec').forEach((b,j)=>{
+      if(j!==i){b.classList.remove('open');}
+    });
+    document.querySelectorAll('.lead-box').forEach((b,j)=>{
+      if(j!==i){b.classList.remove('active');}
+    });
+    // Toggle this branch
+    if(!branchEl.innerHTML) buildBranch(lead, branchEl);
+    const open=branchEl.classList.toggle('open');
+    box.classList.toggle('active', open);
+    box.querySelector('.lead-ch').innerHTML=open?'&#9650;':'&#9660;';
+    if(open) setTimeout(()=>branchEl.scrollIntoView({behavior:'smooth',block:'start'}),100);
+  });
+
+  col.appendChild(vl);col.appendChild(box);
+  leadsTop.appendChild(col);
+});
+
+// SW registration
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js'));
+}
+</script>
+</body>
+</html>
